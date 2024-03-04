@@ -30,7 +30,7 @@ func Insert(db *gorm.DB, dictionary map[string]interface{}) (map[string]interfac
 	url := dictionary["url"].(string)
 	var shortURLs []ShortURL
 	err := db.Where("url=?", url).Limit(1).Find(&shortURLs).Error
-	if err == nil {
+	if err != nil {
 		return nil, err
 	}
 	code := fmt.Sprintf("%x", md5.Sum([]byte(url)))[:6]
