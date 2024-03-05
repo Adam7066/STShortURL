@@ -5,6 +5,7 @@ import (
 	"STShortURL/log"
 	"STShortURL/utility"
 	"fmt"
+	"github.com/pquerna/otp/totp"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -27,8 +28,16 @@ func main() {
 func insertShortUrl(router *gin.Engine, db *gorm.DB) {
 	router.POST("/", func(context *gin.Context) {
 		dictionary := utility.RequestBodyToMap(context)
-		result, err := database.Insert(db, dictionary)
-		utility.ContextJSON(context, http.StatusOK, result, err)
+		accountName := dictionary["account_code"].(string)
+		passcode := dictionary["passcode"].(string)
+		if validateTOTP(db, accountName, passcode) {
+			url := dictionary["url"].(string)
+			result, err := database.Insert(db, url)
+			utility.ContextJSON(context, http.StatusOK, result, err)
+		} else {
+			result := map[string]interface{}{"isSuccess": false}
+			utility.ContextJSON(context, http.StatusUnauthorized, result, nil)
+		}
 	})
 }
 
@@ -47,4 +56,9 @@ func selectShortUrl(router *gin.Engine, db *gorm.DB) {
 		}
 		refreshHtml = fmt.Sprintf("<html><meta http-equiv='refresh' content='0;url=%s'/></html>", result.Url)
 	})
+}
+
+func validateTOTP(db *gorm.DB, accountName, passcode string) bool {
+	secret := database.SelectTotp(db, accountName)
+	return totp.Validate(passcode, secret)
 }

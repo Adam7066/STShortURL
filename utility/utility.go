@@ -28,3 +28,9 @@ func RequestBodyToMap(context *gin.Context) map[string]interface{} {
 	rawJSON, _ := RequestBody(context)
 	return RawBodyToMap(rawJSON)
 }
+
+func CheckError(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
