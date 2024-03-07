@@ -28,7 +28,7 @@ func main() {
 func insertShortUrl(router *gin.Engine, db *gorm.DB) {
 	router.POST("/", func(context *gin.Context) {
 		dictionary := utility.RequestBodyToMap(context)
-		accountName := dictionary["account_code"].(string)
+		accountName := dictionary["account"].(string)
 		passcode := dictionary["passcode"].(string)
 		if validateTOTP(db, accountName, passcode) {
 			url := dictionary["url"].(string)
